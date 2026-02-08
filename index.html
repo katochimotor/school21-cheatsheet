@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>D01T01 — Шпаргалка Школа 21</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ===== RESET & BASE ===== */
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:#000;
+  color:#00ff41;
+  font-family:'JetBrains Mono',monospace;
+  font-size:14px;
+  line-height:1.7;
+  overflow-x:hidden;
+  min-height:100vh;
+}
+::-webkit-scrollbar{width:8px}
+::-webkit-scrollbar-track{background:#0a0a0a}
+::-webkit-scrollbar-thumb{background:#00ff41;border-radius:4px}
+::selection{background:#00ff41;color:#000}
+
+/* ===== CRT SCANLINES ===== */
+body::after{
+  content:'';
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
+  background:repeating-linear-gradient(
+    0deg,
+    rgba(0,255,65,0.03) 0px,
+    rgba(0,255,65,0.03) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events:none;
+  z-index:9999;
+}
+
+/* ===== MATRIX CANVAS ===== */
+#matrix-canvas{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  z-index:0;
+  opacity:0.15;
+}
+
+/* ===== BOOT SCREEN ===== */
+#boot-screen{
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
+  background:#000;
+  z-index:10000;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+  transition:opacity 1s ease;
+}
+#boot-screen.hidden{opacity:0;pointer-events:none}
+#boot-text{
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;
+  color:#00ff41;
+  max-width:700px;
+  width:100%;
+  white-space:pre-wrap;
+  text-align:left;
+}
+#boot-skip{
+  position:fixed;
+  bottom:30px;
+  right:30px;
+  font-family:'Press Start 2P',monospace;
+  font-size:10px;
+  color:#666;
+  cursor:pointer;
+  z-index:10001;
+  transition:color .3s;
+}
+#boot-skip:hover{color:#00ff41}
+#boot-progress{
+  width:100%;
+  max-width:700px;
+  height:4px;
+  background:#111;
+  margin-top:20px;
+  border-radius:2px;
+  overflow:hidden;
+}
+#boot-progress-bar{
+  height:100%;
+  width:0%;
+  background:#00ff41;
+  box-shadow:0 0 10px #00ff41;
+  transition:width 0.3s;
+}
+
+/* ===== MAIN CONTAINER ===== */
+#app{
+  position:relative;
+  z-index:1;
+  max-width:900px;
+  margin:0 auto;
+  padding:20px 20px 100px;
+  display:none;
+}
+#app.visible{display:block;animation:fadeIn 1s ease}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== HEADER ===== */
+.header{
+  text-align:center;
+  padding:40px 0 30px;
+  border-bottom:1px solid #00ff4133;
+  margin-bottom:40px;
+}
+.header h1{
+  font-family:'Press Start 2P',monospace;
+  font-size:clamp(14px,3vw,22px);
+  color:#00ff41;
+  text-shadow:0 0 20px #00ff41,0 0 40px #00ff4166;
+  margin-bottom:15px;
+  animation:glitch 3s infinite;
+}
+.header .subtitle{
+  font-size:12px;
+  color:#888;
+}
+
+/* ===== GLITCH ===== */
+@keyframes glitch{
+  0%,90%,100%{text-shadow:0 0 20px #00ff41,0 0 40px #00ff4166}
+  92%{text-shadow:2px 0 #ff0040,-2px 0 #00d4ff,0 0 20px #00ff41}
+  94%{text-shadow:-1px 0 #ff0040,1px 0 #00d4ff,0 0 20px #00ff41}
+  96%{text-shadow:0 0 20px #00ff41,0 0 40px #00ff4166}
+}
+
+/* ===== NAV / TOC ===== */
+.toc{
+  background:#0a0a0a;
+  border:1px solid #00ff4133;
+  border-radius:8px;
+  padding:20px 25px;
+  margin-bottom:40px;
+}
+.toc h2{
+  font-family:'Press Start 2P',monospace;
+  font-size:12px;
+  color:#ffb800;
+  margin-bottom:15px;
+  text-shadow:0 0 10px #ffb80066;
+}
+.toc a{
+  display:block;
+  color:#00cc33;
+  text-decoration:none;
+  padding:6px 0;
+  font-size:13px;
+  transition:all .3s;
+  border-left:2px solid transparent;
+  padding-left:10px;
+}
+.toc a:hover{
+  color:#00ff41;
+  border-left-color:#00ff41;
+  text-shadow:0 0 8px #00ff41;
+  padding-left:15px;
+}
+.toc .bonus{color:#ffb800}
+.toc .bonus:hover{color:#ffb800;border-left-color:#ffb800;text-shadow:0 0 8px #ffb800}
+
+/* ===== QUEST SECTION ===== */
+.quest{
+  margin-bottom:50px;
+  padding:25px;
+  background:#0a0a0a;
+  border:1px solid #00ff4122;
+  border-radius:8px;
+  border-left:3px solid #00ff41;
+  animation:fadeIn .5s ease;
+}
+.quest.bonus-quest{border-left-color:#ffb800}
+.quest h2{
+  font-family:'Press Start 2P',monospace;
+  font-size:clamp(10px,2vw,14px);
+  color:#ffb800;
+  margin-bottom:5px;
+  text-shadow:0 0 10px #ffb80044;
+}
+.quest .quest-title{
+  font-size:clamp(9px,1.5vw,11px);
+  color:#888;
+  margin-bottom:20px;
+  font-family:'Press Start 2P',monospace;
+}
+
+/* ===== TERMINAL WINDOW ===== */
+.terminal{
+  background:#0d1117;
+  border:1px solid #00ff4144;
+  border-radius:6px;
+  margin:15px 0;
+  overflow:hidden;
+}
+.terminal-header{
+  background:#161b22;
+  padding:8px 12px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  border-bottom:1px solid #00ff4122;
+}
+.terminal-dot{width:10px;height:10px;border-radius:50%}
+.terminal-dot.r{background:#ff5f56}
+.terminal-dot.y{background:#ffbd2e}
+.terminal-dot.g{background:#27c93f}
+.terminal-title{
+  font-size:11px;
+  color:#888;
+  margin-left:8px;
+}
+.terminal-body{
+  padding:15px;
+  font-size:13px;
+  overflow-x:auto;
+}
+.terminal-body pre{
+  margin:0;
+  white-space:pre-wrap;
+  word-break:break-all;
+}
+
+/* ===== CODE HIGHLIGHTING ===== */
+.cmd{color:#00ff41}
+.comment{color:#666;font-style:italic}
+.flag{color:#00d4ff}
+.string{color:#ffb800}
+.important{color:#ff0040;font-weight:bold}
+.success{color:#00ff88}
+.warn{color:#ffb800}
+
+/* ===== EXPLANATION BOX ===== */
+.explain{
+  background:#111;
+  border-left:3px solid #ffb800;
+  padding:12px 15px;
+  margin:12px 0;
+  font-size:12px;
+  color:#ccc;
+  border-radius:0 6px 6px 0;
+}
+.explain strong{color:#ffb800}
+.explain code{
+  background:#1a1a2e;
+  color:#00ff41;
+  padding:1px 6px;
+  border-radius:3px;
+  font-size:12px;
+}
+
+/* ===== TIP / WARNING / NOTE ===== */
+.tip{
+  background:#001a00;
+  border:1px solid #00ff4144;
+  border-radius:6px;
+  padding:12px 15px;
+  margin:12px 0;
+  font-size:12px;
+}
+.tip::before{content:'💡 ';font-size:14px}
+.warning{
+  background:#1a0000;
+  border:1px solid #ff004044;
+  border-radius:6px;
+  padding:12px 15px;
+  margin:12px 0;
+  font-size:12px;
+  color:#ff6666;
+}
+.warning::before{content:'⚠️ ';font-size:14px}
+
+/* ===== COMMIT BLOCK ===== */
+.commit-block{
+  background:#0a1a0a;
+  border:2px solid #00ff8844;
+  border-radius:8px;
+  padding:15px;
+  margin:20px 0;
+  position:relative;
+}
+.commit-block::before{
+  content:'🔴 КОММИТ — делай это СЕЙЧАС!';
+  font-family:'Press Start 2P',monospace;
+  font-size:9px;
+  color:#00ff88;
+  display:block;
+  margin-bottom:10px;
+  text-shadow:0 0 8px #00ff88;
+}
+
+/* ===== COLLAPSIBLE ===== */
+.collapse-btn{
+  background:transparent;
+  border:1px solid #00ff41;
+  color:#00ff41;
+  padding:8px 16px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  cursor:pointer;
+  border-radius:4px;
+  transition:all .3s;
+  display:inline-block;
+  margin:8px 0;
+}
+.collapse-btn:hover{
+  background:#00ff41;
+  color:#000;
+  box-shadow:0 0 15px #00ff4166;
+}
+.collapse-content{
+  display:none;
+  animation:fadeIn .3s ease;
+}
+.collapse-content.open{display:block}
+
+/* ===== TABLE ===== */
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin:15px 0;
+  font-size:12px;
+}
+th{
+  background:#111;
+  color:#ffb800;
+  padding:8px 10px;
+  text-align:left;
+  border:1px solid #00ff4122;
+}
+td{
+  padding:8px 10px;
+  border:1px solid #00ff4111;
+  color:#ccc;
+}
+td code{
+  background:#1a1a2e;
+  color:#00ff41;
+  padding:1px 5px;
+  border-radius:3px;
+}
+tr:hover{background:#0a0a0a}
+
+/* ===== CHECKLIST ===== */
+.checklist{list-style:none;padding:0}
+.checklist li{
+  padding:8px 0;
+  border-bottom:1px solid #00ff4111;
+  font-size:13px;
+  cursor:pointer;
+  transition:all .3s;
+}
+.checklist li::before{
+  content:'[ ] ';
+  color:#666;
+  font-weight:bold;
+}
+.checklist li.done{color:#00ff88;text-decoration:line-through}
+.checklist li.done::before{content:'[✓] ';color:#00ff88}
+
+/* ===== PIXEL DUCK ===== */
+.duck-container{
+  position:fixed;
+  bottom:20px;
+  left:20px;
+  z-index:100;
+  display:flex;
+  align-items:flex-end;
+  gap:10px;
+}
+.duck{
+  width:48px;
+  height:48px;
+  animation:duckFloat 3s ease-in-out infinite;
+  cursor:pointer;
+  image-rendering:pixelated;
+}
+.duck-bubble{
+  background:#111;
+  border:1px solid #00ff4144;
+  border-radius:8px 8px 8px 0;
+  padding:8px 12px;
+  font-size:11px;
+  color:#00ff41;
+  max-width:250px;
+  opacity:0;
+  transition:opacity .5s;
+}
+.duck-bubble.show{opacity:1}
+
+@keyframes duckFloat{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-8px)}
+}
+
+/* ===== BACK TO TOP ===== */
+#back-top{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  width:40px;height:40px;
+  background:transparent;
+  border:1px solid #00ff41;
+  color:#00ff41;
+  font-size:18px;
+  cursor:pointer;
+  border-radius:4px;
+  z-index:100;
+  opacity:0;
+  transition:all .3s;
+}
+#back-top.visible{opacity:1}
+#back-top:hover{background:#00ff41;color:#000;box-shadow:0 0 15px #00ff4166}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:600px){
+  body{font-size:12px}
+  .quest{padding:15px}
+  .terminal-body{padding:10px;font-size:11px}
+  .duck-container{bottom:10px;left:10px}
+  .duck{width:36px;height:36px}
+  .duck-bubble{font-size:10px;max-width:180px}
+}
+</style>
+</head>
+<body>
+
+<!-- MATRIX RAIN CANVAS -->
+<canvas id="matrix-canvas"></canvas>
+
+<!-- BOOT SCREEN -->
+<div id="boot-screen">
+  <div id="boot-text"></div>
+  <div id="boot-progress"><div id="boot-progress-bar"></div></div>
+  <div id="boot-skip" onclick="skipBoot()">[ESC] Пропустить</div>
+</div>
+
+<!-- BACK TO TOP -->
+<button id="back-top" onclick="window.scrollTo({top:0})">↑</button>
+
+<!-- PIXEL DUCK -->
+<div class="duck-container" onclick="changeDuckMsg()">
+  <svg class="duck" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <rect x="5" y="1" width="6" height="1" fill="#ffb800"/>
+    <rect x="4" y="2" width="1" height="1" fill="#ffb800"/>
+    <rect x="5" y="2" width="6" height="1" fill="#ffdd00"/>
+    <rect x="11" y="2" width="1" height="1" fill="#ffb800"/>
+    <rect x="3" y="3" width="1" height="1" fill="#ffb800"/>
+    <rect x="4" y="3" width="8" height="1" fill="#ffdd00"/>
+    <rect x="12" y="3" width="1" height="1" fill="#ffb800"/>
+    <rect x="9" y="3" width="1" height="1" fill="#000"/>
+    <rect x="3" y="4" width="1" height="1" fill="#ffb800"/>
+    <rect x="4" y="4" width="8" height="1" fill="#ffdd00"/>
+    <rect x="12" y="4" width="1" height="1" fill="#ffb800"/>
+    <rect x="2" y="5" width="1" height="1" fill="#ffb800"/>
+    <rect x="3" y="5" width="10" height="1" fill="#ffdd00"/>
+    <rect x="13" y="5" width="1" height="1" fill="#ff6600"/>
+    <rect x="14" y="5" width="1" height="1" fill="#ff6600"/>
+    <rect x="2" y="6" width="1" height="1" fill="#ffb800"/>
+    <rect x="3" y="6" width="10" height="1" fill="#ffdd00"/>
+    <rect x="13" y="6" width="2" height="1" fill="#ff6600"/>
+    <rect x="2" y="7" width="1" height="1" fill="#ffb800"/>
+    <rect x="3" y="7" width="10" height="1" fill="#ffdd00"/>
+    <rect x="13" y="7" width="1" height="1" fill="#ffb800"/>
+    <rect x="3" y="8" width="1" height="1" fill="#ffb800"/>
+    <rect x="4" y="8" width="8" height="1" fill="#ffdd00"/>
+    <rect x="12" y="8" width="1" height="1" fill="#ffb800"/>
+    <rect x="4" y="9" width="1" height="1" fill="#ffb800"/>
+    <rect x="5" y="9" width="6" height="1" fill="#ffdd00"/>
+    <rect x="11" y="9" width="1" height="1" fill="#ffb800"/>
+    <rect x="3" y="10" width="2" height="1" fill="#ff6600"/>
+    <rect x="5" y="10" width="6" height="1" fill="#ffb800"/>
+    <rect x="11" y="10" width="2" height="1" fill="#ff6600"/>
+    <rect x="2" y="11" width="3" height="1" fill="#ff6600"/>
+    <rect x="11" y="11" width="3" height="1" fill="#ff6600"/>
+  </svg>
+  <div class="duck-bubble" id="duck-bubble">Привет! Нажми на меня для совета 🦆</div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app">
+
+<!-- HEADER -->
+<div class="header">
+  <h1>D01T01</h1>
+  <div style="font-family:'Press Start 2P',monospace;font-size:clamp(8px,1.5vw,11px);color:#00ff88;margin-bottom:8px;">
+    ЗНАКОМСТВО С LINUX И GIT
+  </div>
+  <div class="subtitle">Интерактивная шпаргалка для Школы 21 / Бассейн</div>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc">
+  <h2>// НАВИГАЦИЯ</h2>
+  <a href="#step0">ШАГ 0 → Подготовка SSH-ключа</a>
+  <a href="#quest1">ЗАДАНИЕ 1 → Клонирование репозитория</a>
+  <a href="#quest2">ЗАДАНИЕ 2 → Запуск ai_initial_module.sh</a>
+  <a href="#quest3">ЗАДАНИЕ 3 → Папки и файлы</a>
+  <a href="#quest4">ЗАДАНИЕ 4 → Убить процесс</a>
+  <a href="#quest5">ЗАДАНИЕ 5 → Конфигурация двери</a>
+  <a href="#quest6">ЗАДАНИЕ 6 → Rm — собрать ключ</a>
+  <a href="#quest7">ЗАДАНИЕ 7 → Ветки Git</a>
+  <a href="#quest8" class="bonus">★ БОНУС 8 → Vim + история</a>
+  <a href="#quest9" class="bonus">★ БОНУС 9 → Скрипт edit.sh</a>
+  <a href="#quest10" class="bonus">★ БОНУС 10 → GitLab мануал</a>
+  <a href="#dictionary">📖 Словарь команд</a>
+  <a href="#checklist">✅ Чеклист прохождения</a>
+</div>
+
+<!-- ============================================== -->
+<!-- ШАГ 0: SSH -->
+<!-- ============================================== -->
+<div class="quest" id="step0">
+<h2>ШАГ 0</h2>
+<div class="quest-title">ПОДГОТОВКА SSH-КЛЮЧА ДЛЯ GITLAB</div>
+
+<div class="explain">
+  <strong>Зачем?</strong> GitLab не пустит тебя клонировать репозиторий без SSH-ключа. Это как электронный пропуск — доказывает, что ты — это ты.
+</div>
+
+<div class="terminal">
+  <div class="terminal-header">
+    <div class="terminal-dot r"></div>
+    <div class="terminal-dot y"></div>
+    <div class="terminal-dot g"></div>
+    <span class="terminal-title">terminal — ssh-keygen</span>
+  </div>
+  <div class="terminal-body"><pre><span class="comment"># 1. Генерируем SSH-ключ (жми Enter на все вопросы)</span>
+<span class="cmd">ssh-keygen -t ed25519 -C "твой_email@student.21-school.ru"</span>
+
+<span class="comment"># 2. Смотрим публичный ключ — СКОПИРУЙ весь вывод</span>
+<span class="cmd">cat ~/.ssh/id_ed25519.pub</span>
+
+<span class="comment"># 3. Проверяем подключение (после добавления ключа в GitLab)</span>
+<span class="cmd">ssh -T git@&lt;адрес_гитлаба_школы&gt;</span></pre></div>
+</div>
+
+<div class="explain">
+  <strong>Куда вставить ключ:</strong> GitLab → <code>Settings</code> → <code>SSH Keys</code> → вставь ключ → <code>Add key</code>
+</div>
+
+<button class="collapse-btn" onclick="toggleCollapse(this)">💬 Как объяснить другим?</button>
+<div class="collapse-content">
+  <div class="tip">
+    «SSH-ключ — это как отпечаток пальца для сервера. Генерируешь пару: публичный отдаёшь серверу, приватный оставляешь себе. При подключении сервер проверяет, что ключи совпадают, и пускает тебя.»
+  </div>
+</div>
+</div>
+
+<!-- ============================================== -->
+<!-- ЗАДАНИЕ 1: КЛОНИРОВАНИЕ -->
+<!-- ============================================== -->
+<div class="quest" id="quest1">
+<h2>ЗАДАНИЕ 1</h2>
+<div class="quest-title">КЛОНИРОВАНИЕ РЕПОЗИТОРИЯ</div>
+
+<div class="explain">
+  <strong>Суть:</strong> Скопировать проект с сервера GitLab к себе на компьютер + создать рабочую ветку <code>develop</code>.
+</div>
+
+<div class="terminal">
+  <div class="terminal-header">
+    <div class="terminal-dot r"></div>
+    <div class="terminal-dot y"></div>
+    <div class="terminal-dot g"></div>
+    <span class="terminal-title">terminal — git clone</span>
+  </div>
+  <div class="terminal-body"><pre><span class="comment"># 1. Перейди в домашнюю папку</span>
+<span class="cmd">cd ~</span>
+<span class="comment"># cd = change directory, ~ = домашняя папка</span>
+
+<span class="comment"># 2. Клонируй (URL бери из GitLab: Clone → SSH)</span>
+<span class="cmd">git clone git@&lt;адрес&gt;:&lt;путь&gt;/D01T01.git</span>
+<span class="comment"># Скачивает весь проект + историю изменений</span>
+
+<span class="comment"># 3. Зайди в папку проекта</span>
+<span class="cmd">cd D01T01</span>
+
+<span class="comment"># 4. Создай ветку develop И переключись на неё</span>
+<span class="cmd">git checkout -b develop</span>
+<span class="comment"># -b = создать новую ветку. ВСЯ работа ведётся тут!</span>
+
+<span class="comment"># 5. Проверь что ты на develop (звёздочка * = текущая)</span>
+<span class="cmd">git branch</span></pre></div>
+</div>
+
+<div class="explain">
+  <strong>git clone</strong> — скачивает не просто файлы, а ВСЮ историю изменений.<br>
+  <strong>git checkout -b develop</strong> — создаёт ветку <code>develop</code> (как черновик) и переключается на неё.<br>
+  <strong>git branch</strong> — показывает список веток, текущая отмечена <code>*</code>.
+</div>
+
+<button class="collapse-btn" onclick="toggleCollapse(this)">💬 Как объяснить другим?</button>
+<div class="collapse-content">
+  <div class="tip">
+    «git clone — скачать проект со всей историей. Ветка develop — это черновик. Работаешь в нём, а когда готово — можно объединить с основной веткой. Так несколько человек могут работать одновременно не мешая друг другу.»
+  </div>
+</div>
+</div>
+
+<!-- ============================================== -->
+<!-- ЗАДАНИЕ 2: ai_initial_module.sh -->
+<!-- ============================================== -->
+<div class="quest" id="quest2">
+<h2>ЗАДАНИЕ 2</h2>
+<div class="quest-title">ЗАПУСК AI_INITIAL_MODULE.SH</div>
+
+<div class="explain">
+  <strong>Суть:</strong> Запустить скрипт, который инициализирует «модули ИИ». Нужно ровно <span class="important">5 модулей</span>. Сам скрипт менять <span class="important">НЕЛЬЗЯ</span>, но можно исправить окружение.
+</div>
+
+<div class="terminal">
+  <div class="terminal-header">
+    <div class="terminal-dot r"></div>
+    <div class="terminal-dot y"></div>
+    <div class="terminal-dot g"></div>
+    <span class="terminal-title">terminal — quest 2</span>
+  </div>
+  <div class="terminal-body"><pre><span class="comment"># 1. Перейди в src</span>
+<span class="cmd">cd src</span>
+
+<span class="comment"># 2. Посмотри все файлы (включая скрытые)</span>
+<span class="cmd">ls -la</span>
+<span class="comment"># ls = list, -l = подробно, -a = скрытые файлы</span>
+
+<span class="comment"># 3. Проверь права на скрипт</span>
+<span class="cmd">ls -l ai_initial_module.sh</span>
+<span class="comment"># Если нет буквы x — скрипт не запустится</span>
+
+<span class="comment"># 4. Добавь право на выполнение (если нет x)</span>
+<span class="cmd">chmod +x ai_initial_module.sh</span>
+<span class="comment"># chmod = change mode, +x = добавить execute</span>
+
+<span class="comment"># 5. ЗАПУСТИ и ЧИТАЙ вывод!</span>
+<span class="cmd">bash ai_initial_module.sh</span>
+
+<span class="comment"># 6. Если не хватает файлов — создавай:</span>
+<span class="cmd">touch имя_файла.sh</span>
+<span class="cmd">chmod +x имя_файла.sh</span>
+
+<span class="comment"># 7. Если лишние — удаляй:</span>
+<span class="cmd">rm лишний_файл.sh</span></pre></div>
+</div>
+
+<div class="warning">
+  ВНИМАТЕЛЬНО читай вывод скрипта — он сам говорит, чего не хватает или что лишнее!
+</div>
+
+<div class="commit-block">
+<div class="terminal">
+  <div class="terminal-header">
+    <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+    <span class="terminal-title">git commit</span>
+  </div>
+  <div class="terminal-body"><pre><span class="cmd">cd ~/D01T01</span>
+<span class="cmd">git add .</span>             <span class="comment"># Добавить ВСЕ изменения</span>
+<span class="cmd">git commit -m "Quest 2: запуск ai_initial_module, исправлены модули"</span>
+<span class="cmd">git push origin develop</span> <span class="comment"># Отправить на сервер</span></pre></div>
+</div>
+</div>
+
+<button class="collapse-btn" onclick="toggleCollapse(this)">💬 Как объяснить другим?</button>
+<div class="collapse-content">
+  <div class="tip">
+    «Скрипт — это файл с последовательностью команд. chmod +x даёт системе разрешение запускать файл. git add → commit → push — три шага: собрал → зафиксировал → отправил.»
+  </div>
+</div>
+</div>
+
+<!-- ============================================== -->
+<!-- ЗАДАНИЕ 3: ПАПКИ И ФАЙЛЫ -->
+<!-- ============================================== -->
+<div class="quest" id="quest3">
+<h2>ЗАДАНИЕ 3</h2>
+<div class="quest-title">ПАПКИ И ФАЙЛЫ — AI_DOOR_MANAGEMENT_MODULE.SH</div>
+
+<div class="explain">
+  <strong>Суть:</strong> Запустить <code>ai_door_management_module.sh</code>. Он ищет конфигурационные файлы, но не находит. Создай правильную структуру. ВСЕ команды запиши в <code>quest3.sh</code>.
+</div>
+
+<div class="terminal">
+  <div class="terminal-header">
+    <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+    <span class="terminal-title">terminal — quest 3</span>
+  </div>
+  <div class="terminal-body"><pre><span class="comment"># 1. Дай права и запусти — ЧИТАЙ ОШИБКИ</span>
+<span class="cmd">chmod +x ai_door_management_module.sh</span>
+<span class="cmd">bash ai_door_management_module.sh</span>
+
+<span class="comment"># 2. Скрипт скажет, чего не хватает. Создавай:</span>
+
+<span class="comment"># Создать папку (с промежуточными):</span>
+<span class="cmd">mkdir -p путь/к/папке</span>
+<span class="comment"># mkdir = make directory, -p = создать все вложенные</span>
+
+<span class="comment"># Создать пустой файл:</span>
+<span class="cmd">touch путь/к/файлу.cfg</span>
+
+<span class="comment"># Дать права на чтение:</span>
+<span class="cmd">chmod +r путь/к/файлу.cfg</span>
+
+<span class="comment"># 3. Перезапусти и проверь:</span>
+<span class="cmd">bash ai_door_management_module.sh</span>
+
+<span class="comment"># 4. Запиши ВСЕ использованные команды в quest3.sh:</span>
+<span class="cmd">echo 'mkdir -p путь/к/папке' &gt;&gt; quest3.sh</span>
+<span class="cmd">echo 'touch путь/к/файлу.cfg' &gt;&gt; quest3.sh</span>
+<span class="cmd">echo 'chmod +r путь/к/файлу.cfg' &gt;&gt; quest3.sh</span>
+<span class="comment"># &gt;&gt; = ДОПИСАТЬ в конец файла (не перезаписать!)</span></pre></div>
+</div>
+
+<div class="explain">
+  <strong>Логика:</strong> Скрипт ожидает определённую структуру файлов — как программа, которая ищет свои настройки в конкретном месте. Нет файла → программа падает. Читаем ошибки → создаём то, чего не хватает.
+</div>
+
+<div class="commit-block">
+<div class="terminal">
+  <div class="terminal-header">
+    <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+    <span class="terminal-title">git commit</span>
+  </div>
+  <div class="terminal-body"><pre><span class="cmd">cd ~/D01T01</span>
+<span class="cmd">git add .</span>
+<span class="cmd">git commit -m "Quest 3: структура файлов для ai_door_management + quest3.sh"</span>
+<span class="cmd">git push origin develop</span></pre></div>
+</div>
+</div>
+</div>
+
+<!-- ============================================== -->
+<!-- ЗАДАНИЕ 4: УБИТЬ ПРОЦЕСС -->
+<!-- ============================================== -->
+<div class="quest" id="quest4">
+<h2>ЗАДАНИЕ 4</h2>
+<div class="quest-title">УБИТЬ ПРОЦЕСС AI_DOOR_CONTROL.SH</div>
+
+<div class="explain">
+  <strong>Суть:</strong> После запуска модуля дверей появился фоновый процесс <code>ai_door_control.sh</code>. Он мешает. Нужно его остановить.
+</div>
+
+<div class="terminal">
+  <div class="terminal-header">
+    <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+    <span class="terminal-title">terminal — quest 4</span>
+  </div>
+  <div class="terminal-body"><pre><span class="comment"># 1. Найди процесс</span>
+<span class="cmd">ps aux | grep ai_door_control</span>
+<span class="comment"># ps aux = ВСЕ процессы</span>
+<span class="comment"># | (пайп) = передать результат дальше</span>
+<span class="comment"># grep = найти строки с текстом "ai_door_control"</span>
+<span class="comment"># Увидишь строку с числом (PID) — запомни его</span>
+
+<span class="comment"># 2. Убей процесс</span>
+<span class="cmd">kill &lt;PID&gt;</span>
+<span class="comment"># Замени &lt;PID&gt; на число из вывода ps</span>
+
+<span class="comment"># Если не помогло — принудительно:</span>
+<span class="cmd">kill -9 &lt;PID&gt;</span>
+<span class="comment"># -9 = SIGKILL, принудительное завершение</span>
+
+<span class="comment"># Или убей по имени (проще):</span>
+<span class="cmd">pkill -f ai_door_control</span>
+
+<span class="comment"># 3. Запиши команды в quest4.sh</span>
+<span class="cmd">echo 'ps aux | grep ai_door_control' &gt; src/quest4.sh</span>
+<span class="cmd">echo 'pkill -f ai_door_control' &gt;&gt; src/quest4.sh</span></pre></div>
+</div>
+
+<div class="commit-block">
+<div class="terminal">
+  <div class="terminal-header">
+    <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+    <span class="terminal-title">git commit</span>
+  </div>
+  <div class="terminal-body"><pre><span class="cmd">cd ~/D01T01</span>
+<span class="cmd">git add .</span>
+<span class="cmd">git commit -m "Quest 4: остановлен ai_door_control + quest4.sh"</span>
+<span class="cmd">git push origin develop</span></pre></div>
+</div>
+</div>
+
+<button class="collapse-btn" onclick="toggleCollapse(this)">💬 Как объяснить другим?</button>
+<div class="collapse-content">
+  <div class="tip">
+    «Процесс — запущенная программа. ps aux — показывает все. grep — фильтрует нужный. kill — отправляет сигнал "завершись". kill -9 — убивает принудительно, процесс не может проигнорировать.»
+  </div>
+</div>
+</div>
+
+<!-- ============================================== -->
+<!-- ЗАДАНИЕ 5: КОНФ -->
+<!-- ============================================== -->
+<div class="quest" id="quest5">
+<h2>ЗАДАНИЕ 5</h2>
+<div class="quest-title">КОНФИГУРАЦИЯ ДВЕРИ — ТЕКСТОВЫЙ РЕДАКТОР</div>
+
+<div class="explain">
+  <strong>Суть:</strong> Найти файл конфигурации двери, изменить <code>STATUS</code> на <code>OPEN</code> через текстовый редактор. Записать все шаги в <code>quest5.txt</code>.
+</div>
+
+<div class="terminal">
+  <div class="terminal-header">
+    <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+    <span class="terminal-title">terminal — quest 5</span>
+  </div>
+  <div class="terminal-body"><pre><span class="comment"># 1. Найди файл со словом STATUS</span>
+<span class="cmd">grep -r "STATUS" src/</span>
+<span class="comment"># grep -r = рекурсивный поиск текста во ВСЕХ файлах</span>
+
+<span class="comment"># 2. Открой файл в nano (самый простой редактор)</span>
+<span class="cmd">nano путь/к/файлу_конфигурации</span>
+
+<span class="comment"># Внутри nano:</span>
+<span class="comment"># - Стрелками найди строку STATUS</span>
+<span class="comment"># - Измени значение на OPEN</span>
+<span class="comment"># - Ctrl+O → Enter = СОХРАНИТЬ</span>
+<span class="comment"># - Ctrl+X = ВЫЙТИ</span>
+
+<span class="comment"># 3. Создай quest5.txt с описанием действий</span>
+<span class="cmd">nano src/quest5.txt</span></pre></div>
+</div>
+
+<div class="explain">
+  <strong>Содержимое quest5.txt</strong> (пример):
+</div>
+
+<div class="terminal">
+  <div class="terminal-header">
+    <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+    <span class="terminal-title">quest5.txt</span>
+  </div>
+  <div class="terminal-body"><pre>1. Открыл редактор: nano путь/к/конфигу
+2. Нашёл строку STATUS
+3. Изменил значение на OPEN
+4. Сохранил: Ctrl+O, Enter
+5. Вышел: Ctrl+X</pre></div>
+</div>
+
+<div class="commit-block">
+<div class="terminal">
+  <div class="terminal-header">
+    <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+    <span class="terminal-title">git commit</span>
+  </div>
+  <div class="terminal-body"><pre><span class="cmd">cd ~/D01T01</span>
+<span class="cmd">git add .</span>
+<span class="cmd">git commit -m "Quest 5: STATUS=OPEN, quest5.txt"</span>
+<span class="cmd">git push origin develop</span></pre></div>
+</div>
+</div>
+</div>
+
+<!-- ============================================== -->
+<!-- ЗАДАНИЕ 6: RM — СОБРАТЬ КЛЮЧ -->
+<!-- ============================================== -->
+<div class="quest" id="quest6">
+<h2>ЗАДАНИЕ 6</h2>
+<div class="quest-title">RM — СОБРАТЬ КЛЮЧ ИЗ ФАЙЛОВ</div>
+
+<div class="explain">
+  <strong>Суть:</strong> <code>keygen.sh</code> создаёт кучу файлов — часть мусор, часть фрагменты ключа. Удали мусор, запусти <code>unifier.sh</code> для сборки <code>main.key</code>.
+</div>
+
+<div class="terminal">
+  <div class="terminal-header">
+    <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+    <span class="terminal-title">terminal — quest 6</span>
+  </div>
+  <div class="terminal-body"><pre><span class="comment"># 1. Перейди в ai_help</span>
+<span class="cmd">cd ~/D01T01/src/ai_help</span>
+
+<span class="comment"># 2. Дай права на скрипты</span>
+<span class="cmd">chmod +x keygen.sh unifier.sh</span>
+
+<span class="comment"># 3. Запусти генератор</span>
+<span class="cmd">bash keygen.sh</span>
+
+<span class="comment"># 4. Посмотри что создалось</span>
+<span class="cmd">ls key/</span>
+
+<span class="comment"># 5. ВАЖНО: загляни в unifier.sh — какое расширение он ищет?</span>
+<span class="cmd">cat unifier.sh</span>
+<span class="comment"># Найди строку с расширением (например *.key или *.part)</span>
+
+<span class="comment"># 6. Посмотри содержимое файлов</span>
+<span class="cmd">cat key/файл1</span>
+<span class="cmd">cat key/файл2</span>
+<span class="comment"># Фрагменты ключа ОТЛИЧАЮТСЯ от мусора</span>
+
+<span class="comment"># 7. Удали мусор (пример — адаптируй под свой случай!)</span>
+<span class="cmd">rm key/*.trash</span>
+<span class="comment"># rm = remove. *.trash = все файлы с расширением .trash</span>
+
+<span class="comment"># 8. Проверь что осталось</span>
+<span class="cmd">ls key/</span>
+
+<span class="comment"># 9. Собери ключ</span>
+<span class="cmd">bash unifier.sh</span>
+
+<span class="comment"># 10. Запиши всё в quest6.sh</span>
+<span class="cmd">cd ~/D01T01/src</span>
+<span class="cmd">nano quest6.sh</span></pre></div>
+</div>
+
+<div class="warning">
+  ОСТОРОЖНО С rm! Удалённые файлы НЕ попадают в корзину! Перепроверь расширение перед удалением.
+</div>
+
+<div class="commit-block">
+<div class="terminal">
+  <div class="terminal-header">
+    <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+    <span class="terminal-title">git commit</span>
+  </div>
+  <div class="terminal-body"><pre><span class="cmd">cd ~/D01T01</span>
+<span class="cmd">git add .</span>
+<span class="cmd">git commit -m "Quest 6: main.key собран, мусор удалён, quest6.sh"</span>
+<span class="cmd">git push origin develop</span></pre></div>
+</div>
+</div>
+</div>
+
+<!-- ============================================== -->
+<!-- ЗАДАНИЕ 7: ВЕТКИ GIT -->
+<!-- ============================================== -->
+<div class="quest" id="quest7">
+<h2>ЗАДАНИЕ 7</h2>
+<div class="quest-title">ВЕТКИ GIT — GIT_FOR_HUMAN</div>
+
+<div class="explain">
+  <strong>Суть:</strong> Прочитать инструкции из <code>src/git_for_human</code> и создать ветки в git.
+</div>
+
+<div class="terminal">
+  <div class="terminal-header">
+    <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+    <span class="terminal-title">terminal — quest 7</span>
+  </div>
+  <div class="terminal-body"><pre><span class="comment"># 1. Прочитай инструкции</span>
+<span class="cmd">cd ~/D01T01/src/git_for_human</span>
+<span class="cmd">ls</span>
+<span class="cmd">cat *</span>       <span class="comment"># прочитай все файлы</span>
+
+<span class="comment"># 2. Вернись в корень проекта</span>
+<span class="cmd">cd ~/D01T01</span>
+
+<span class="comment"># Основные команды веток:</span>
+<span class="cmd">git branch имя_ветки</span>          <span class="comment"># создать ветку</span>
+<span class="cmd">git checkout имя_ветки</span>        <span class="comment"># переключиться</span>
+<span class="cmd">git checkout -b имя_ветки</span>     <span class="comment"># создать + переключиться</span>
+<span class="cmd">git branch</span>                    <span class="comment"># список веток</span>
+
+<span class="comment"># 3. Создавай ветки по инструкции, например:</span>
+<span class="cmd">git checkout develop</span>
+<span class="cmd">git checkout -b feature_branch</span>
+<span class="comment"># делай нужные изменения</span>
+<span class="cmd">git add .</span>
+<span class="cmd">git commit -m "создана ветка feature_branch"</span>
+
+<span class="comment"># 4. Отправь ВСЕ ветки на сервер</span>
+<span class="cmd">git push origin --all</span>
+<span class="comment"># --all = все локальные ветки</span></pre></div>
+</div>
+
+<button class="collapse-btn" onclick="toggleCollapse(this)">💬 Как объяснить другим?</button>
+<div class="collapse-content">
+  <div class="tip">
+    «Ветки — параллельные версии проекта. Как параллельные вселенные: в каждой свои изменения, не мешая другим. Потом можно объединить (merge).»
+  </div>
+</div>
+</div>
+
+<!-- ============================================== -->
+<!-- БОНУС 8: VIM + ИСТОРИЯ -->
+<!-- ============================================== -->
+<div class="quest bonus-quest" id="quest8">
+<h2>★ БОНУС 8</h2>
+<div class="quest-title">VIM + ИСТОРИЯ VIM + ЖУРНАЛ FILES.LOG</div>
+
+<div class="explain">
+  <strong>Суть:</strong> 1) Зафиксировать исходный файл в журнале. 2) Дописать версии Vim после 2001. 3) Добавить заголовок. После каждого — запись в журнал. <strong>Всё в ветке develop!</strong>
+</div>
+
+<div class="terminal">
+  <div class="terminal-header">
+    <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+    <span class="terminal-title">terminal — quest 8</span>
+  </div>
+  <div class="terminal-body"><pre><span class="comment"># 0. Убедись что на develop!</span>
+<span class="cmd">cd ~/D01T01</span>
+<span class="cmd">git checkout develop</span>
+
+<span class="comment"># 1. Зафиксируй исходное состояние в журнале</span>
+<span class="cmd">echo "src/history_of_vim.txt — $(stat -c%s src/history_of_vim.txt) — $(date '+%Y-%m-%d %H:%M:%S') — $(sha256sum src/history_of_vim.txt | awk '{print $1}') — sha256" >> src/files.log</span>
+
+<span class="comment"># Разбор этой команды:</span>
+<span class="comment"># stat -c%s файл = размер в байтах</span>
+<span class="comment"># date '+формат' = дата и время</span>
+<span class="comment"># sha256sum файл = хеш-сумма</span>
+<span class="comment"># $() = подставить результат команды</span>
+
+<span class="comment"># 2. Открой файл в VIM</span>
+<span class="cmd">vim src/history_of_vim.txt</span>
+
+<span class="comment"># В Vim:</span>
+<span class="comment"># G = в конец файла</span>
+<span class="comment"># o = новая строка + режим вставки</span>
+<span class="comment"># Допиши:</span>
+<span class="string">2006 May 7  - Vim 7.0: Spell checking, tabs, omni completion</span>
+<span class="string">2016 Sep 12 - Vim 8.0: Asynchronous I/O support, jobs</span>
+<span class="string">2022 Jun 28 - Vim 9.0: Vim9 script for better performance</span>
+<span class="comment"># Esc → :wq → Enter</span>
+
+<span class="comment"># 3. Запись в журнал после добавления версий</span>
+<span class="cmd">echo "src/history_of_vim.txt — $(stat -c%s src/history_of_vim.txt) — $(date '+%Y-%m-%d %H:%M:%S') — $(sha256sum src/history_of_vim.txt | awk '{print $1}') — sha256" >> src/files.log</span>
+
+<span class="comment"># 4. Добавь заголовок (в Vim)</span>
+<span class="cmd">vim src/history_of_vim.txt</span>
+<span class="comment"># gg = в начало файла</span>
+<span class="comment"># O = новая строка ВЫШЕ + вставка</span>
+<span class="comment"># Напиши: Краткий обзор истории редактора Vim</span>
+<span class="comment"># Esc → :wq → Enter</span>
+
+<span class="comment"># 5. Ещё запись в журнал</span>
+<span class="cmd">echo "src/history_of_vim.txt — $(stat -c%s src/history_of_vim.txt) — $(date '+%Y-%m-%d %H:%M:%S') — $(sha256sum src/history_of_vim.txt | awk '{print $1}') — sha256" >> src/files.log</span></pre></div>
+</div>
+
+<div class="explain">
+  <strong>Шпаргалка Vim:</strong>
+</div>
+<table>
+  <tr><th>Клавиша</th><th>Действие</th></tr>
+  <tr><td><code>i</code></td><td>Режим вставки (печатать)</td></tr>
+  <tr><td><code>Esc</code></td><td>Выйти из вставки</td></tr>
+  <tr><td><code>:wq</code></td><td>Сохранить и выйти</td></tr>
+  <tr><td><code>:q!</code></td><td>Выйти БЕЗ сохранения</td></tr>
+  <tr><td><code>gg</code></td><td>В начало файла</td></tr>
+  <tr><td><code>G</code></td><td>В конец файла</td></tr>
+  <tr><td><code>o</code></td><td>Новая строка ниже + вставка</td></tr>
+  <tr><td><code>O</code></td><td>Новая строка выше + вставка</td></tr>
+  <tr><td><code>/текст</code></td><td>Поиск</td></tr>
+  <tr><td><code>dd</code></td><td>Удалить строку</td></tr>
+  <tr><td><code>u</code></td><td>Отменить</td></tr>
+</table>
+
+<div class="commit-block">
+<div class="terminal">
+  <div class="terminal-header">
+    <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+    <span class="terminal-title">git commit</span>
+  </div>
+  <div class="terminal-body"><pre><span class="cmd">cd ~/D01T01</span>
+<span class="cmd">git add .</span>
+<span class="cmd">git commit -m "Quest 8: история Vim + files.log"</span>
+<span class="cmd">git push origin develop</span></pre></div>
+</div>
+</div>
+</div>
+
+<!-- ============================================== -->
+<!-- БОНУС 9: СКРИПТ EDIT.SH -->
+<!-- ============================================== -->
+<div class="quest bonus-quest" id="quest9">
+<h2>★ БОНУС 9</h2>
+<div class="quest-title">СКРИПТ EDIT.SH — ЗАМЕНА ПОДСТРОК</div>
+
+<div class="explain">
+  <strong>Суть:</strong> Написать скрипт, который принимает 3 аргумента (файл, искать, заменить), делает замену и пишет в журнал.
+</div>
+
+<div class="terminal">
+  <div class="terminal-header">
+    <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+    <span class="terminal-title">src/edit.sh — создай этот файл</span>
+  </div>
+  <div class="terminal-body"><pre><span class="comment">#!/bin/bash</span>
+
+<span class="comment"># Проверка: нужно ровно 3 аргумента</span>
+<span class="cmd">if [ $# -ne 3 ]; then</span>
+    <span class="cmd">echo "Использование: $0 &lt;файл&gt; &lt;искать&gt; &lt;заменить&gt;"</span>
+    <span class="cmd">exit 1</span>
+<span class="cmd">fi</span>
+
+<span class="comment"># Переменные</span>
+<span class="cmd">FILE="$1"</span>      <span class="comment"># 1-й аргумент = путь к файлу</span>
+<span class="cmd">SEARCH="$2"</span>    <span class="comment"># 2-й = что искать</span>
+<span class="cmd">REPLACE="$3"</span>   <span class="comment"># 3-й = на что заменить</span>
+
+<span class="comment"># Проверка: файл существует?</span>
+<span class="cmd">if [ ! -f "$FILE" ]; then</span>
+    <span class="cmd">echo "Ошибка: файл '$FILE' не найден!"</span>
+    <span class="cmd">exit 1</span>
+<span class="cmd">fi</span>
+
+<span class="comment"># Проверка: строка есть в файле?</span>
+<span class="cmd">if ! grep -q "$SEARCH" "$FILE"; then</span>
+    <span class="cmd">echo "Строка '$SEARCH' не найдена в '$FILE'"</span>
+    <span class="cmd">exit 1</span>
+<span class="cmd">fi</span>
+
+<span class="comment"># Замена (sed -i = прямо в файле, s|old|new|g = заменить все)</span>
+<span class="cmd">sed -i "s|$SEARCH|$REPLACE|g" "$FILE"</span>
+
+<span class="cmd">echo "Замена: '$SEARCH' → '$REPLACE' в '$FILE'"</span>
+
+<span class="comment"># Запись в журнал</span>
+<span class="cmd">LOG="src/files.log"</span>
+<span class="cmd">SIZE=$(stat -c%s "$FILE")</span>
+<span class="cmd">DATE=$(date '+%Y-%m-%d %H:%M:%S')</span>
+<span class="cmd">SHA=$(sha256sum "$FILE" | awk '{print $1}')</span>
+<span class="cmd">echo "$FILE — $SIZE — $DATE — $SHA — sha256" >> "$LOG"</span></pre></div>
+</div>
+
+<div class="terminal">
+  <div class="terminal-header">
+    <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+    <span class="terminal-title">terminal — использование</span>
+  </div>
+  <div class="terminal-body"><pre><span class="cmd">chmod +x src/edit.sh</span>
+<span class="cmd">bash src/edit.sh src/history_of_vim.txt "Vi IMitation" "Vi IMproved"</span></pre></div>
+</div>
+
+<div class="commit-block">
+<div class="terminal">
+  <div class="terminal-header">
+    <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+    <span class="terminal-title">git commit</span>
+  </div>
+  <div class="terminal-body"><pre><span class="cmd">cd ~/D01T01</span>
+<span class="cmd">git add .</span>
+<span class="cmd">git commit -m "Quest 9: edit.sh для замены подстрок"</span>
+<span class="cmd">git push origin develop</span></pre></div>
+</div>
+</div>
+</div>
+
+<!-- ============================================== -->
+<!-- БОНУС 10: GITLAB МАНУАЛ -->
+<!-- ============================================== -->
+<div class="quest bonus-quest" id="quest10">
+<h2>★ БОНУС 10</h2>
+<div class="quest-title">МАНУАЛ ПО GITLAB — GITLAB_MANUAL.MD</div>
+
+<div class="explain">
+  <strong>Суть:</strong> Markdown-файл со скриншотами по 4 темам. Сделай скриншоты в GitLab и положи рядом.
+</div>
+
+<div class="terminal">
+  <div class="terminal-header">
+    <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+    <span class="terminal-title">src/gitlab_manual.md — создай этот файл</span>
+  </div>
+  <div class="terminal-body"><pre><span class="comment"># Краткое руководство по GitLab</span>
+
+<span class="comment">## 1. Создание репозитория</span>
+<span class="string">1. New project → Create blank project</span>
+<span class="string">2. Введи имя, выбери .gitignore, отметь README</span>
+<span class="string">3. Create project</span>
+<span class="string">![Создание](screenshots/create_repo.png)</span>
+
+<span class="comment">## 2. Создание веток</span>
+<span class="string">Repository → Branches → New branch</span>
+<span class="string">![Ветки](screenshots/branches.png)</span>
+
+<span class="comment">## 3. Запрос на слияние (Merge Request)</span>
+<span class="string">Merge Requests → New → выбрать ветки → Create</span>
+<span class="string">![MR](screenshots/merge_request.png)</span>
+
+<span class="comment">## 4. Создание задачи (Issue)</span>
+<span class="string">Issues → New issue → заполнить → Create</span>
+<span class="string">Добавить комментарий в задаче</span>
+<span class="string">![Issue](screenshots/issue.png)</span></pre></div>
+</div>
+
+<div class="terminal">
+  <div class="terminal-header">
+    <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+    <span class="terminal-title">terminal — скриншоты</span>
+  </div>
+  <div class="terminal-body"><pre><span class="cmd">mkdir -p ~/D01T01/src/screenshots</span>
+<span class="comment"># Положи туда скриншоты из браузера</span></pre></div>
+</div>
+
+<div class="commit-block">
+<div class="terminal">
+  <div class="terminal-header">
+    <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+    <span class="terminal-title">git commit — ФИНАЛЬНЫЙ</span>
+  </div>
+  <div class="terminal-body"><pre><span class="cmd">cd ~/D01T01</span>
+<span class="cmd">git add .</span>
+<span class="cmd">git commit -m "Quest 10: gitlab_manual.md + скриншоты"</span>
+<span class="cmd">git push origin develop</span></pre></div>
+</div>
+</div>
+</div>
+
+<!-- ============================================== -->
+<!-- СЛОВАРЬ КОМАНД -->
+<!-- ============================================== -->
+<div class="quest" id="dictionary">
+<h2>📖 СЛОВАРЬ</h2>
+<div class="quest-title">ВСЕ КОМАНДЫ В ОДНОМ МЕСТЕ</div>
+
+<div class="explain"><strong>Навигация и файлы:</strong></div>
+<table>
+  <tr><th>Команда</th><th>Значение</th><th>Пример</th></tr>
+  <tr><td><code>cd</code></td><td>Сменить папку</td><td><code>cd src</code></td></tr>
+  <tr><td><code>ls</code></td><td>Список файлов</td><td><code>ls -la</code></td></tr>
+  <tr><td><code>pwd</code></td><td>Текущий путь</td><td><code>pwd</code></td></tr>
+  <tr><td><code>mkdir</code></td><td>Создать папку</td><td><code>mkdir -p a/b</code></td></tr>
+  <tr><td><code>touch</code></td><td>Создать файл</td><td><code>touch f.txt</code></td></tr>
+  <tr><td><code>rm</code></td><td>Удалить</td><td><code>rm f.txt</code></td></tr>
+  <tr><td><code>rm -r</code></td><td>Удалить папку</td><td><code>rm -r dir/</code></td></tr>
+  <tr><td><code>cp</code></td><td>Копировать</td><td><code>cp a.txt b.txt</code></td></tr>
+  <tr><td><code>mv</code></td><td>Переместить</td><td><code>mv old new</code></td></tr>
+  <tr><td><code>cat</code></td><td>Вывести файл</td><td><code>cat f.txt</code></td></tr>
+  <tr><td><code>find</code></td><td>Найти файлы</td><td><code>find . -name "*.sh"</code></td></tr>
+  <tr><td><code>grep</code></td><td>Найти текст</td><td><code>grep -r "STATUS" .</code></td></tr>
+  <tr><td><code>chmod</code></td><td>Изменить права</td><td><code>chmod +x s.sh</code></td></tr>
+  <tr><td><code>echo</code></td><td>Вывести текст</td><td><code>echo "hi" >> f</code></td></tr>
+</table>
+
+<div class="explain"><strong>Git:</strong></div>
+<table>
+  <tr><th>Команда</th><th>Значение</th><th>Когда</th></tr>
+  <tr><td><code>git clone</code></td><td>Скачать проект</td><td>В начале</td></tr>
+  <tr><td><code>git add .</code></td><td>Добавить изменения</td><td>Перед коммитом</td></tr>
+  <tr><td><code>git commit -m ""</code></td><td>Зафиксировать</td><td>После add</td></tr>
+  <tr><td><code>git push origin develop</code></td><td>Отправить</td><td>После commit</td></tr>
+  <tr><td><code>git checkout -b ветка</code></td><td>Создать ветку</td><td>Новая ветка</td></tr>
+  <tr><td><code>git checkout ветка</code></td><td>Переключиться</td><td>Смена ветки</td></tr>
+  <tr><td><code>git branch</code></td><td>Список веток</td><td>Проверка</td></tr>
+  <tr><td><code>git status</code></td><td>Состояние</td><td>Когда не уверен</td></tr>
+  <tr><td><code>git log --oneline</code></td><td>История</td><td>Проверить коммиты</td></tr>
+</table>
+
+<div class="explain"><strong>Процессы:</strong></div>
+<table>
+  <tr><th>Команда</th><th>Значение</th></tr>
+  <tr><td><code>ps aux</code></td><td>Все процессы</td></tr>
+  <tr><td><code>ps aux | grep имя</code></td><td>Найти процесс</td></tr>
+  <tr><td><code>kill PID</code></td><td>Завершить процесс</td></tr>
+  <tr><td><code>kill -9 PID</code></td><td>Убить принудительно</td></tr>
+  <tr><td><code>pkill -f имя</code></td><td>Убить по имени</td></tr>
+</table>
+</div>
+
+<!-- ============================================== -->
+<!-- ЧЕКЛИСТ -->
+<!-- ============================================== -->
+<div class="quest" id="checklist">
+<h2>✅ ЧЕКЛИСТ</h2>
+<div class="quest-title">ОТМЕЧАЙ ВЫПОЛНЕННОЕ (КЛИКАЙ НА СТРОКУ)</div>
+
+<ul class="checklist" id="checklist-list">
+  <li onclick="this.classList.toggle('done')">Настроить SSH-ключ</li>
+  <li onclick="this.classList.toggle('done')">Клонировать репозиторий</li>
+  <li onclick="this.classList.toggle('done')">Создать ветку develop</li>
+  <li onclick="this.classList.toggle('done')">ЗАДАНИЕ 1 — клон → коммит</li>
+  <li onclick="this.classList.toggle('done')">ЗАДАНИЕ 2 — ai_initial_module.sh → коммит</li>
+  <li onclick="this.classList.toggle('done')">ЗАДАНИЕ 3 — папки + quest3.sh → коммит</li>
+  <li onclick="this.classList.toggle('done')">ЗАДАНИЕ 4 — убить процесс + quest4.sh → коммит</li>
+  <li onclick="this.classList.toggle('done')">ЗАДАНИЕ 5 — STATUS=OPEN + quest5.txt → коммит</li>
+  <li onclick="this.classList.toggle('done')">ЗАДАНИЕ 6 — main.key + quest6.sh → коммит</li>
+  <li onclick="this.classList.toggle('done')">ЗАДАНИЕ 7 — ветки git → push --all</li>
+  <li onclick="this.classList.toggle('done')">★ БОНУС 8 — Vim история + files.log → коммит</li>
+  <li onclick="this.classList.toggle('done')">★ БОНУС 9 — edit.sh → коммит</li>
+  <li onclick="this.classList.toggle('done')">★ БОНУС 10 — gitlab_manual.md → коммит</li>
+</ul>
+</div>
+
+<!-- FOOTER -->
+<div style="text-align:center;padding:40px 0;border-top:1px solid #00ff4122;margin-top:40px;">
+  <div style="font-family:'Press Start 2P',monospace;font-size:10px;color:#00ff41;text-shadow:0 0 10px #00ff41;">
+    УДАЧИ НА БАССЕЙНЕ! 🚀
+  </div>
+  <div style="font-size:11px;color:#666;margin-top:10px;">
+    git add . && git commit -m "success" && git push origin develop
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+// ===== MATRIX RAIN =====
+(function(){
+  const canvas=document.getElementById('matrix-canvas');
+  const ctx=canvas.getContext('2d');
+  let w,h,columns,drops;
+  const chars='アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  
+  function resize(){
+    w=canvas.width=window.innerWidth;
+    h=canvas.height=window.innerHeight;
+    columns=Math.floor(w/14);
+    drops=Array(columns).fill(1);
+  }
+  resize();
+  window.addEventListener('resize',resize);
+  
+  function draw(){
+    ctx.fillStyle='rgba(0,0,0,0.05)';
+    ctx.fillRect(0,0,w,h);
+    ctx.fillStyle='#00ff41';
+    ctx.font='12px JetBrains Mono';
+    for(let i=0;i<drops.length;i++){
+      const char=chars[Math.floor(Math.random()*chars.length)];
+      ctx.globalAlpha=Math.random()*0.5+0.1;
+      ctx.fillText(char,i*14,drops[i]*14);
+      if(drops[i]*14>h&&Math.random()>0.975)drops[i]=0;
+      drops[i]++;
+    }
+    ctx.globalAlpha=1;
+  }
+  setInterval(draw,50);
+})();
+
+// ===== BOOT SEQUENCE =====
+const bootLines=[
+  '[BIOS] POST check..................... [OK]',
+  '[BIOS] Memory test: 640K............. [OK]',
+  '[BOOT] Loading kernel................. [OK]',
+  '[INIT] Starting systemd............... [OK]',
+  '[INIT] Mounting filesystems........... [OK]',
+  '[NET]  Configuring eth0............... [OK]',
+  '[SSH]  Starting OpenSSH daemon........ [OK]',
+  '[GIT]  Checking git version 2.43...... [OK]',
+  '[SYS]  Loading bash shell............. [OK]',
+  '',
+  '  ____   ___  _ _____ ___  _ ',
+  ' |  _ \\ / _ \\/ |_   _/ _ \\/ |',
+  ' | | | | | | | | | || | | | |',
+  ' | |_| | |_| | | | || |_| | |',
+  ' |____/ \\___/|_| |_| \\___/|_|',
+  '',
+  '[SYS]  School 21 — Cheat Sheet v1.0',
+  '[SYS]  Initializing interface......... [OK]',
+  '[LOAD] Loading quest data............. [OK]',
+  '',
+  '> СИСТЕМА ГОТОВА. ЗАГРУЗКА ИНТЕРФЕЙСА...',
+];
+
+let bootIndex=0;
+let bootText=document.getElementById('boot-text');
+let bootProgressBar=document.getElementById('boot-progress-bar');
+let bootDone=false;
+
+function bootStep(){
+  if(bootDone)return;
+  if(bootIndex<bootLines.length){
+    bootText.textContent+=bootLines[bootIndex]+'\n';
+    bootProgressBar.style.width=((bootIndex+1)/bootLines.length*100)+'%';
+    bootText.scrollTop=bootText.scrollHeight;
+    bootIndex++;
+    setTimeout(bootStep,80+Math.random()*120);
+  }else{
+    setTimeout(finishBoot,800);
+  }
+}
+
+function finishBoot(){
+  bootDone=true;
+  document.getElementById('boot-screen').classList.add('hidden');
+  document.getElementById('app').classList.add('visible');
+  setTimeout(()=>{
+    document.getElementById('boot-screen').style.display='none';
+    showDuckBubble();
+  },1000);
+}
+
+function skipBoot(){
+  bootDone=true;
+  document.getElementById('boot-screen').classList.add('hidden');
+  document.getElementById('app').classList.add('visible');
+  setTimeout(()=>{
+    document.getElementById('boot-screen').style.display='none';
+    showDuckBubble();
+  },500);
+}
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'&&!bootDone)skipBoot();
+});
+
+setTimeout(bootStep,500);
+
+// ===== COLLAPSIBLE =====
+function toggleCollapse(btn){
+  const content=btn.nextElementSibling;
+  content.classList.toggle('open');
+  btn.textContent=content.classList.contains('open')?'🔽 Скрыть':'💬 Как объяснить другим?';
+}
+
+// ===== DUCK MESSAGES =====
+const duckMsgs=[
+  'Не забудь git add . перед коммитом! 🦆',
+  'chmod +x — без этого скрипт не запустится!',
+  'grep -r "текст" . — поиск во всех файлах!',
+  'Читай вывод ошибок — там ответы! 👀',
+  'kill -9 — если процесс не слушается!',
+  ':wq — сохранить и выйти из Vim!',
+  'git status — когда не уверен!',
+  'Всё будет develop! 💪',
+  '>> дописывает, > перезаписывает!',
+  'mkdir -p создаёт ВСЕ вложенные папки!',
+  'Ты справишься! 🚀',
+  'Сделай перерыв если застрял! ☕',
+];
+let duckMsgIndex=0;
+
+function showDuckBubble(){
+  const bubble=document.getElementById('duck-bubble');
+  bubble.classList.add('show');
+}
+
+function changeDuckMsg(){
+  duckMsgIndex=(duckMsgIndex+1)%duckMsgs.length;
+  const bubble=document.getElementById('duck-bubble');
+  bubble.textContent=duckMsgs[duckMsgIndex];
+  bubble.classList.add('show');
+}
+
+// ===== BACK TO TOP =====
+window.addEventListener('scroll',function(){
+  const btn=document.getElementById('back-top');
+  btn.classList.toggle('visible',window.scrollY>300);
+});
+
+// ===== SAVE CHECKLIST =====
+document.querySelectorAll('.checklist li').forEach((li,i)=>{
+  if(localStorage.getItem('check_'+i)==='done')li.classList.add('done');
+  li.addEventListener('click',()=>{
+    localStorage.setItem('check_'+i,li.classList.contains('done')?'done':'');
+  });
+});
+</script>
+</body>
+</html>
